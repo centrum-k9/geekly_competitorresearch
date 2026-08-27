@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+
+<html lang="ja"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>Geekly 競合調査 Notionモック - Excel忠実版</title>
+<style>
+:root{--text:#37352f;--muted:#787774;--line:#e9e9e7;--side:#f7f7f5;--hover:#efefed;--blue:#2383e2;--soft:#fbfbfa}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;color:var(--text);background:#fff}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}aside{background:var(--side);border-right:1px solid var(--line);padding:10px 8px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{font-weight:650;font-size:14px;padding:8px 10px 12px}nav a{display:block;padding:7px 10px;border-radius:5px;font-size:13px;color:inherit;text-decoration:none;cursor:pointer}nav a.active,nav a:hover{background:var(--hover)}
+main{padding:34px 48px 90px;max-width:1420px;width:100%;min-width:0}.page{display:none}.page.active{display:block}.crumb,.small{font-size:12px;color:var(--muted)}h1{font-size:31px;margin:10px 0 8px}h2{font-size:20px;margin:28px 0 10px}h3{font-size:16px;margin:18px 0 8px}.desc{font-size:14px;color:var(--muted);margin-bottom:18px}
+.callout{background:#f7f6f3;border-radius:4px;padding:12px 14px;font-size:13px;margin:10px 0}.filterbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:12px 0 16px}label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px}select,input,textarea{border:1px solid var(--line);border-radius:4px;padding:7px 8px;background:#fff;font:inherit;font-size:13px}
+.db{border:1px solid var(--line);border-radius:4px;overflow:hidden;background:#fff}.matrix-wrap{overflow:auto;border:1px solid var(--line);border-radius:4px;background:#fff}table{border-collapse:collapse;width:100%;font-size:12px}th,td{padding:8px 9px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:top;text-align:left}th{background:var(--soft);color:var(--muted);font-weight:500}th:last-child,td:last-child{border-right:none}
+.excel-matrix{min-width:1500px}.excel-matrix .row-label{position:sticky;left:0;z-index:2;background:#fff;font-weight:600;min-width:210px}.excel-matrix th.row-label{background:var(--soft);z-index:3}.excel-matrix .device-head{text-align:center;font-weight:600}
+.img-cell{min-width:220px;height:150px;background:#f7f7f5;display:grid;place-items:center;color:#999;border:1px solid var(--line);margin:-3px}.popup-cell{min-width:220px;height:110px;background:#f7f7f5;display:grid;place-items:center;color:#999;border:1px solid var(--line);margin:-3px}.text-cell{min-width:220px;white-space:pre-wrap;line-height:1.5}
+.week-group{background:#f3f3f1;color:var(--text);font-weight:600;text-align:center}.hidden-col{display:none}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:16px 0 12px}.tab{padding:8px 10px;font-size:13px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}.tab.active{color:var(--text);border-bottom-color:var(--text)}.tabpanel{display:none}.tabpanel.active{display:block}
+.logo-matrix{min-width:1600px}.sticky-col{position:sticky;left:0;background:#fff;z-index:2;font-weight:600}.logo-matrix th.sticky-col{background:var(--soft);z-index:3}
+.high-matrix{min-width:1050px}.screen-cell{height:150px;background:#f7f7f5;display:grid;place-items:center;color:#999;min-width:180px}.link-btn{border:0;background:none;padding:0;font:inherit;color:inherit;text-decoration:underline;text-decoration-color:#ccc;cursor:pointer;font-weight:600}
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px}.card{border:1px solid var(--line);border-radius:4px;overflow:hidden}.preview{height:110px;background:#f4f4f2;display:grid;place-items:center;color:#999;border-bottom:1px solid var(--line)}.card-body{padding:9px}.card-title{font-weight:600;font-size:13px}.card-meta{font-size:11px;color:var(--muted);margin-top:4px}
+.edit-grid{display:grid;grid-template-columns:220px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid #f2f2f0;font-size:13px}.edit-label{color:var(--muted)}textarea{width:100%;min-height:70px}
+@media(max-width:900px){.app{grid-template-columns:1fr}aside{display:none}main{padding:24px 16px}.gallery{grid-template-columns:1fr 1fr}}
+
+.input-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:14px 0}
+.input-tab{padding:8px 10px;font-size:13px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.input-tab.active{color:var(--text);border-bottom-color:var(--text)}
+.input-panel{display:none}.input-panel.active{display:block}
+.input-note{font-size:12px;color:var(--muted);margin:8px 0 14px}
+.form-table td:first-child{width:240px;color:var(--muted);background:#fbfbfa}
+.form-table input,.form-table textarea,.form-table select{width:100%}
+.inline-checks{display:flex;flex-wrap:wrap;gap:8px}
+.inline-checks label{display:flex;align-items:center;gap:5px;color:var(--text);font-size:12px}
+.save-indicator{margin-top:10px;font-size:12px;color:var(--muted)}
+
+.native-page{border-top:1px solid var(--line);padding-top:18px}
+.native-props{display:grid;grid-template-columns:180px 1fr;gap:8px 12px;font-size:13px;max-width:900px}
+.native-props .k{color:var(--muted)}
+.linked-title{display:flex;justify-content:space-between;align-items:center;margin:22px 0 8px}
+.linked-title .db-name{font-size:11px;color:var(--muted)}
+.editable-cell{background:#fff}
+.editable-cell:hover{background:#f7f7f5}
+.relation-box{display:flex;gap:6px;flex-wrap:wrap}
+.relation-pill{background:#f1f1ef;border-radius:3px;padding:4px 6px;font-size:11px}
+.notion-new{color:var(--muted);font-size:12px;padding:8px 10px;border-top:1px solid var(--line)}
+.save-note{background:#f7f6f3;border-radius:4px;padding:10px 12px;font-size:12px;margin:10px 0 16px}
+
+.week-list{display:grid;gap:6px}
+.week-row{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:4px;background:#fff}
+.week-row:hover{background:#fbfbfa}
+.week-open{border:0;background:none;padding:0;font:inherit;color:inherit;text-decoration:underline;text-decoration-color:#ccc;cursor:pointer;font-weight:600;text-align:left}
+.peek-shell{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:16px;align-items:start}
+.peek-panel{border-left:1px solid var(--line);padding-left:16px}
+.peek-panel.hidden{display:none}
+.peek-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+.peek-close{border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 8px;cursor:pointer}
+.peek-panel .db{overflow:auto}
+.peek-panel table{min-width:620px}
+@media(max-width:1000px){.peek-shell{grid-template-columns:1fr}.peek-panel{border-left:0;border-top:1px solid var(--line);padding-left:0;padding-top:14px}}
+
+.week-new{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 10px;border:1px dashed var(--line);border-radius:4px;
+  color:var(--muted);font-size:12px;cursor:pointer;background:#fff
+}
+.week-new:hover{background:#fbfbfa;color:var(--text)}
+.auto-note{font-size:12px;color:var(--muted);margin:8px 0 12px}
+
+.company-scroll{overflow-x:auto;overflow-y:visible;border:1px solid var(--line);border-radius:4px;background:#fff}
+.company-table{border-collapse:collapse;min-width:1550px;width:max-content}
+.company-table th,.company-table td{min-width:220px}
+.company-table .row-label{min-width:220px;max-width:220px;position:sticky;left:0;z-index:3;background:#fff}
+.company-table th.row-label{background:#fbfbfa;z-index:4}
+.company-table .week-group{min-width:440px;text-align:center;background:#f3f3f1;color:var(--text);font-weight:600}
+.company-table .device-head{min-width:220px;text-align:center}
+.input-card{border:1px solid var(--line);border-radius:4px;padding:14px;margin:10px 0}
+.input-page-note{background:#f7f6f3;border-radius:4px;padding:10px 12px;font-size:12px;margin:10px 0 16px}
+
+.notion-db-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line);background:#fff}
+.notion-db-title{font-size:12px;color:var(--muted)}
+.notion-btn{border:1px solid var(--line);border-radius:4px;background:#fff;padding:6px 9px;font-size:12px;cursor:pointer;color:var(--text)}
+.notion-btn.primary{background:#2383e2;color:#fff;border-color:#2383e2}
+.notion-btn:hover{filter:brightness(.98)}
+.record-list{border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.record-row{display:grid;grid-template-columns:180px 1fr 90px;gap:10px;align-items:center;padding:9px 10px;border-bottom:1px solid var(--line);font-size:12px}
+.record-row:last-child{border-bottom:none}
+.record-link{border:0;background:none;padding:0;font:inherit;color:inherit;text-decoration:underline;text-decoration-color:#ccc;cursor:pointer;font-weight:600;text-align:left}
+.record-badge{font-size:11px;color:var(--muted)}
+.manual-note{font-size:11px;color:var(--muted);margin:8px 0 12px}
+.db-map{font-size:11px;color:var(--muted);margin:6px 0 10px}
+.input-section{margin-top:18px}
+.input-section h3{margin-bottom:8px}
+.input-section .db{overflow:auto}
+.input-section table{min-width:820px}
+.page-peek{border:1px solid var(--line);border-radius:4px;padding:14px;margin-top:14px;background:#fff}
+.page-peek.hidden{display:none}
+.page-peek-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.smallcaps{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+
+.add-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:4px;margin:10px 0;background:#fff}
+.add-row .meta{font-size:11px;color:var(--muted)}
+.record-list{border:1px solid var(--line);border-radius:4px;overflow:hidden;margin-top:8px}
+.record-row{display:grid;grid-template-columns:180px 1fr 90px;gap:10px;align-items:center;padding:9px 10px;border-bottom:1px solid var(--line);font-size:12px}
+.record-row:last-child{border-bottom:none}
+.record-link{border:0;background:none;padding:0;font:inherit;color:inherit;text-decoration:underline;text-decoration-color:#ccc;cursor:pointer;font-weight:600;text-align:left}
+.record-badge{font-size:11px;color:var(--muted)}
+.inline-editor{border:1px solid var(--line);border-radius:4px;padding:12px;margin-top:12px;background:#fff}
+.inline-editor.hidden{display:none}
+.inline-editor-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+
+.modal-lite{border:1px solid var(--line);border-radius:4px;padding:12px;margin-top:12px;background:#fff}
+.modal-lite.hidden{display:none}
+.form-grid{display:grid;grid-template-columns:180px 1fr;gap:8px 12px;font-size:13px}
+.form-grid .k{color:var(--muted)}
+.logo-input-wrap{overflow:auto;border:1px solid var(--line);border-radius:4px;background:#fff}
+.logo-input-table{border-collapse:collapse;min-width:1450px}
+.logo-input-table th,.logo-input-table td{text-align:center;vertical-align:middle}
+.logo-input-table th:first-child,.logo-input-table td:first-child{
+  position:sticky;left:0;background:#fff;z-index:2;text-align:left;min-width:210px
+}
+.logo-input-table th:first-child{background:#fbfbfa;z-index:3}
+.logo-input-table input[type="checkbox"]{width:16px;height:16px}
+.toolbar-split{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.action-group{display:flex;gap:6px;flex-wrap:wrap}
+.master-note{font-size:11px;color:var(--muted);margin:6px 0 10px}
+</style>
+</head><body><div class="app">
+<aside><div class="brand">Geekly / 競合調査</div><nav><a class="active" data-page="company">🏢 企業別調査</a><a data-page="logos">🏷 企業ロゴ使用状況</a><a data-page="highclass">📊 他社（ハイクラス）実績</a><a data-page="input-company">✍️ 企業別調査 入力</a><a data-page="input-logos">✍️ 企業ロゴ 入力</a><a data-page="input-highclass">✍️ ハイクラス実績 入力</a></nav></aside><main>
+
+<section class="page active" id="page-company">
+<div class="crumb">競合調査 / 企業別調査</div>
+<h1 id="company-title">レバテックキャリア</h1>
+<div class="desc">元Excelの「1社1シート」相当。企業を選び、週ごとの調査項目を横並びで比較します。</div><div class="callout">※ この週×PC/SPの横長表は元Excelを踏襲した閲覧イメージです。実NotionではTable Viewの制約により表示方法が多少変わりますが、保持する情報項目は同一です。</div>
+<div class="filterbar">
+<div><label>企業</label><select id="company-select"><option>レバテックキャリア</option><option>リクルートエージェント</option><option>マイビジョン</option><option>アサイン</option><option>ビズリーチ</option><option>ギークリー</option><option>ムービン</option><option>レバテック</option><option>プロライズキャリア</option><option>doda</option><option>レバテックダイレクト</option><option>キッカケエージェント</option><option>Findy</option><option>JAC</option><option>フォースタートアップス</option><option>dodaX</option><option>type転職エージェント</option><option>ワークポート</option><option>Green</option></select></div>
+<div><label>表示</label>
+<select id="company-week-filter">
+<option value="all">直近3週を横並び</option>
+<option value="20260824">2026/08/24週のみ</option>
+<option value="20260817">2026/08/17週のみ</option>
+<option value="20260810">2026/08/10週のみ</option>
+</select>
+</div>
+</div>
+<div class="callout">企業別調査の閲覧画面です。入力は「企業別調査 入力」から行います。</div>
+<div class="company-scroll">
+<table class="company-table">
+<thead>
+<tr><th class="row-label" rowspan="2">調査項目</th>
+<th class="week-group week-20260824" colspan="2">2026/08/24週</th>
+<th class="week-group week-20260817" colspan="2">2026/08/17週</th>
+<th class="week-group week-20260810" colspan="2">2026/08/10週</th></tr>
+<tr>
+<th class="device-head week-20260824">PC</th><th class="device-head week-20260824">SP</th>
+<th class="device-head week-20260817">PC</th><th class="device-head week-20260817">SP</th>
+<th class="device-head week-20260810">PC</th><th class="device-head week-20260810">SP</th>
+</tr></thead>
+<tbody>
+<tr><td class="row-label">自然検索 LP全体キャプチャ</td>
+<td class="week-20260824"><div class="img-cell">LP全体画像</div></td><td class="week-20260824"><div class="img-cell">LP全体画像</div></td>
+<td class="week-20260817"><div class="img-cell">LP全体画像</div></td><td class="week-20260817"><div class="img-cell">LP全体画像</div></td>
+<td class="week-20260810"><div class="img-cell">LP全体画像</div></td><td class="week-20260810"><div class="img-cell">LP全体画像</div></td></tr>
+<tr><td class="row-label">自然検索 離脱防止ポップアップ</td>
+<td class="week-20260824"><div class="popup-cell">Popup画像</div></td><td class="week-20260824"><div class="popup-cell">Popup画像</div></td>
+<td class="week-20260817"><div class="popup-cell">Popup画像</div></td><td class="week-20260817"><div class="popup-cell">Popup画像</div></td>
+<td class="week-20260810"><div class="popup-cell">Popup画像</div></td><td class="week-20260810"><div class="popup-cell">Popup画像</div></td></tr>
+<tr><td class="row-label">自然検索 メインコピー</td>
+<td class="week-20260824 text-cell">ITエンジニアの転職なら、専門性で選ぶ。</td><td class="week-20260824 text-cell">ITエンジニアの転職なら、専門性で選ぶ。</td>
+<td class="week-20260817 text-cell">ITエンジニア専門の転職支援。</td><td class="week-20260817 text-cell">ITエンジニア専門の転職支援。</td>
+<td class="week-20260810 text-cell">ITエンジニア専門の転職支援。</td><td class="week-20260810 text-cell">ITエンジニア専門の転職支援。</td></tr>
+<tr><td class="row-label">指名検索 LP全体キャプチャ</td>
+<td class="week-20260824"><div class="img-cell">LP全体画像</div></td><td class="week-20260824"><div class="img-cell">LP全体画像</div></td>
+<td class="week-20260817"><div class="img-cell">LP全体画像</div></td><td class="week-20260817"><div class="img-cell">LP全体画像</div></td>
+<td class="week-20260810"><div class="img-cell">LP全体画像</div></td><td class="week-20260810"><div class="img-cell">LP全体画像</div></td></tr>
+<tr><td class="row-label">指名検索 URL</td>
+<td class="week-20260824">https://career.levtech.jp/landing/317bn/</td><td class="week-20260824">https://career.levtech.jp/landing/317bn/</td>
+<td class="week-20260817">https://career.levtech.jp/landing/317bv/</td><td class="week-20260817">https://career.levtech.jp/landing/317bv/</td>
+<td class="week-20260810">https://career.levtech.jp/landing/317bv/</td><td class="week-20260810">https://career.levtech.jp/landing/317bv/</td></tr>
+<tr><td class="row-label">指名検索 離脱防止ポップアップ</td>
+<td class="week-20260824"><div class="popup-cell">Popup画像</div></td><td class="week-20260824"><div class="popup-cell">Popup画像</div></td>
+<td class="week-20260817"><div class="popup-cell">Popup画像</div></td><td class="week-20260817"><div class="popup-cell">Popup画像</div></td>
+<td class="week-20260810"><div class="popup-cell">Popup画像</div></td><td class="week-20260810"><div class="popup-cell">Popup画像</div></td></tr>
+<tr><td class="row-label">自然検索と指名検索でのページの違い</td>
+<td class="week-20260824" colspan="2">指名検索SPのFVコピー変更。自然検索は変更なし。</td>
+<td class="week-20260817" colspan="2">CTA文言変更。</td>
+<td class="week-20260810" colspan="2">大きな変更なし。</td></tr>
+<tr><td class="row-label">分かったこと・気づいたこと</td>
+<td class="week-20260824" colspan="2">専門性訴求を強化。CTA構成は継続。</td>
+<td class="week-20260817" colspan="2">FV構成は継続。</td>
+<td class="week-20260810" colspan="2">前週と同様。</td></tr>
+</tbody></table>
+</div>
+<h2>SNS広告</h2>
+<div class="company-scroll">
+<table class="company-table">
+<thead><tr><th class="row-label">調査項目</th><th class="week-20260824">2026/08/24週</th><th class="week-20260817">2026/08/17週</th><th class="week-20260810">2026/08/10週</th></tr></thead>
+<tbody>
+<tr><td class="row-label">SNS広告①</td><td class="week-20260824"><div class="img-cell">広告バナー</div></td><td class="week-20260817"><div class="img-cell">広告バナー</div></td><td class="week-20260810"><div class="img-cell">広告バナー</div></td></tr>
+<tr><td class="row-label">遷移URL①</td><td class="week-20260824">https://example.com/ad1</td><td class="week-20260817">https://example.com/ad1</td><td class="week-20260810">https://example.com/ad1</td></tr>
+<tr><td class="row-label">訴求カテゴリ①</td><td class="week-20260824">年収アップ / エンジニア</td><td class="week-20260817">年収アップ</td><td class="week-20260810">年収アップ</td></tr>
+<tr><td class="row-label">SNS広告②</td><td class="week-20260824"><div class="img-cell">広告バナー</div></td><td class="week-20260817"><div class="img-cell">広告バナー</div></td><td class="week-20260810">—</td></tr>
+<tr><td class="row-label">遷移URL②</td><td class="week-20260824">https://example.com/ad2</td><td class="week-20260817">https://example.com/ad2</td><td class="week-20260810">—</td></tr>
+<tr><td class="row-label">訴求カテゴリ②</td><td class="week-20260824">求人の質</td><td class="week-20260817">求人の質</td><td class="week-20260810">—</td></tr>
+</tbody></table>
+</div>
+</section>
+<section class="page" id="page-logos"><div class="crumb">競合調査 / 企業ロゴ使用状況</div><h1>企業ロゴ使用状況</h1>
+<div class="desc">元Excelと同じ向き：行＝広告主、列＝企業ロゴ。月ごとに表を切り替え。</div>
+<div class="filterbar"><div><label>対象月</label><select id="logo-month"><option>2026/08</option><option>2026/07</option><option>2026/06</option></select></div></div>
+<div class="matrix-wrap"><table class="logo-matrix"><thead><tr><th class="sticky-col">広告主 ＼ 企業ロゴ</th><th>全体の割合</th><th>企業ロゴ使用数</th><th>ニトリ</th><th>CAPCOM</th><th>makita</th><th>TOYOTA</th><th>FANUC</th><th>TERUMO</th><th>ダイキン</th><th>日清食品</th><th>SONY</th><th>SHIFT</th><th>SmartHR</th><th>NEC</th><th>NTTデータ</th><th>ZOZO</th></tr></thead><tbody id="logo-body"><tr><td class="sticky-col">レバテック</td><td>3.4%</td><td>1</td><td>✓</td><td></td><td></td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td><td></td></tr><tr><td class="sticky-col">リクルートエージェント</td><td>6.9%</td><td>2</td><td>✓</td><td></td><td>✓</td><td></td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td><td>✓</td><td></td><td></td><td></td></tr><tr><td class="sticky-col">ワークポート</td><td>10.3%</td><td>3</td><td>✓</td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td><td>✓</td><td></td><td>✓</td><td></td><td></td><td></td><td>✓</td></tr><tr><td class="sticky-col">type転職エージェント</td><td>13.8%</td><td>4</td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td></tr><tr><td class="sticky-col">DODA</td><td>17.2%</td><td>5</td><td>✓</td><td></td><td></td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td><td></td></tr><tr><td class="sticky-col">ビズリーチ</td><td>20.7%</td><td>6</td><td>✓</td><td></td><td>✓</td><td></td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td><td>✓</td><td></td><td></td><td></td></tr><tr><td class="sticky-col">Green</td><td>3.4%</td><td>7</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr><tr><td class="sticky-col">アサイン</td><td>6.9%</td><td>8</td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td></tr><tr><td class="sticky-col">Findy</td><td>10.3%</td><td>9</td><td>✓</td><td></td><td></td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td><td></td></tr><tr><td class="sticky-col">JAC</td><td>13.8%</td><td>10</td><td>✓</td><td></td><td>✓</td><td></td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td><td>✓</td><td></td><td></td><td></td></tr><tr><td class="sticky-col">ギークリー</td><td>17.2%</td><td>1</td><td>✓</td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td><td>✓</td><td></td><td>✓</td><td></td><td></td><td></td><td>✓</td></tr><tr><td class="sticky-col">マイビジョン</td><td>20.7%</td><td>2</td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td><td></td><td>✓</td><td></td></tr><tr><td class="sticky-col">合計</td><td>100%</td><td>46</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr></tbody></table></div>
+</section>
+<section class="page" id="page-highclass"><div class="crumb">競合調査 / 他社（ハイクラス） 実績</div><h1>他社（ハイクラス） 実績</h1>
+<div class="desc">元Excelと同じ向き：行＝ファクト実績、列＝競合企業。数値/文言の直下に根拠スクリーンショット行を保持。</div>
+<div class="matrix-wrap"><table class="high-matrix">
+<thead><tr><th>ファクト実績</th><th>ビズリーチ</th><th>dodaX</th><th>JAC</th><th>マイビジョン</th><th>リクルートエージェント（ハイクラスLP）</th></tr></thead>
+<tbody>
+<tr><td><b>求人数</b></td><td>（TOPページ）<br/>年収1,000万円以上の求人が4割以上</td><td>（TOPページ）<br/>年収600万～2,000万円台の求人多数<br/><br/>年収600万円以上の求人を100,359件</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>根拠スクリーンショット</td><td><div class="screen-cell">TOPページ画像</div></td><td><div class="screen-cell">TOPページ画像</div></td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td><b>転職後年収</b></td><td>（指名LP）<br/>30代転職後年収 平均880万円<br/>40代 平均990万円</td><td>（TOPページ）<br/>転職成功事例：最低800万円</td><td>（指名LP）<br/>最低1,100万円の成功事例を4つ掲載</td><td>（TOP/指名LP）<br/>平均年収UP額122万円</td><td>最低950万円の支援事例</td></tr>
+<tr><td>根拠スクリーンショット</td><td><div class="screen-cell">指名LP画像</div></td><td><div class="screen-cell">TOPページ画像</div></td><td><div class="screen-cell">指名LP画像</div></td><td><div class="screen-cell">TOP/指名LP画像</div></td><td><div class="screen-cell">ハイクラスLP画像</div></td></tr>
+<tr><td><b>アドバイザー数</b></td><td>登録ヘッドハンター数 9,300人以上</td><td>ヘッドハンター約7,600人</td><td>コンサルタント1,400名以上</td><td>—</td><td>—</td></tr>
+<tr><td>根拠スクリーンショット</td><td><div class="screen-cell">TOPページ画像</div></td><td><div class="screen-cell">TOPページ画像</div></td><td><div class="screen-cell">TOPページ画像</div></td><td>—</td><td>—</td></tr>
+<tr><td><b>求人実例（年収帯）</b></td><td>—</td><td>650万円以上の求人実例</td><td>—</td><td>450万円以上の求人実例</td><td>500万円以上の求人実例</td></tr>
+<tr><td>根拠スクリーンショット</td><td>—</td><td><div class="screen-cell">TOPページ画像</div></td><td>—</td><td><div class="screen-cell">指名LP画像</div></td><td><div class="screen-cell">LP画像</div></td></tr>
+<tr><td>参考（Meta広告）</td><td><div class="screen-cell">Meta広告画像</div></td><td>—</td><td><div class="screen-cell">Meta広告画像</div></td><td><div class="screen-cell">Meta広告画像</div></td><td>—</td></tr>
+</tbody></table></div>
+</section>
+
+<section class="page" id="page-input-company">
+<div class="crumb">競合調査 / 企業別調査 入力</div>
+<h1>企業別調査 入力</h1>
+<div class="input-page-note">
+  保存先：Research DB / Page Observations DB / Creatives DB。企業別調査専用の対象企業マスタを使います。
+</div>
+<div class="input-section">
+<div class="toolbar-split">
+<div>
+<b>企業別調査 対象企業マスタ</b>
+<div class="master-note">このマスタは企業ロゴ・ハイクラス実績とは独立しています。</div>
+</div>
+<button class="notion-btn" id="add-research-company">＋ 新規調査企業</button>
+</div>
+<div class="modal-lite hidden" id="research-company-form">
+<div class="form-grid">
+<div class="k">企業名</div><div class="editable-cell" id="research-company-name">新規エージェント</div>
+<div class="k">基準URL</div><div class="editable-cell">https://example.com/</div>
+<div class="k">自然検索URL</div><div class="editable-cell">https://example.com/</div>
+<div class="k">画像保管先</div><div class="editable-cell">Google Drive / 新規企業フォルダ</div>
+</div>
+<div class="action-group" style="margin-top:10px">
+<button class="notion-btn primary" id="save-research-company">Research Companiesへ追加</button>
+<button class="notion-btn" id="close-research-company">閉じる</button>
+</div>
+</div>
+</div>
+<div class="filterbar">
+<div><label>企業</label><select id="company-input-company"><option>レバテックキャリア</option><option>リクルートエージェント</option><option>マイビジョン</option><option>アサイン</option><option>ビズリーチ</option><option>ギークリー</option><option>ムービン</option><option>レバテック</option><option>プロライズキャリア</option><option>doda</option><option>レバテックダイレクト</option><option>キッカケエージェント</option><option>Findy</option><option>JAC</option><option>フォースタートアップス</option><option>dodaX</option><option>type転職エージェント</option><option>ワークポート</option><option>Green</option></select></div>
+</div>
+<div class="input-section">
+<div class="notion-db-toolbar">
+<div>
+<div class="notion-db-title">Linked view of Research DB｜この企業の週次履歴</div>
+<div class="manual-note">通常は自動化で毎週レコードを作成。失敗時・臨時調査時は右のボタンから手動追加。</div>
+</div>
+<button class="notion-btn primary" id="add-week-record">＋ 新規週次調査</button>
+</div>
+<div class="record-list" id="company-input-week-list">
+<div class="record-row">
+<button class="record-link" data-week="2026/08/24週">2026/08/24週</button>
+<div>指名SPコピー変更 / 広告3件</div><div class="record-badge">最新</div>
+</div>
+<div class="record-row">
+<button class="record-link" data-week="2026/08/17週">2026/08/17週</button>
+<div>CTA文言変更 / 広告2件</div><div class="record-badge">履歴</div>
+</div>
+</div>
+<div class="db-map">実装：Companies DBのDatabase ButtonまたはResearch DBの「新規」＋Database TemplateでResearchページを追加。</div>
+</div>
+<div class="page-peek" id="company-week-peek">
+<div class="page-peek-head">
+<div>
+<div class="smallcaps">Research DB page</div>
+<h2 id="company-week-title" style="margin:4px 0">2026/08/24週</h2>
+</div>
+<button class="notion-btn" id="close-company-week">閉じる</button>
+</div>
+<div class="input-section">
+<h3>週次調査（Research DB）</h3>
+<div class="db">
+<table>
+<tbody>
+<tr><td>企業</td><td id="company-week-company">レバテックキャリア</td></tr>
+<tr><td>対象月</td><td class="editable-cell">2026/08</td></tr>
+<tr><td>調査週</td><td class="editable-cell" id="company-week-value">2026/08/24週</td></tr>
+<tr><td>自然検索URL</td><td class="editable-cell">https://career.levtech.jp/</td></tr>
+<tr><td>画像保管先</td><td class="editable-cell">Google Drive / 対象週フォルダ</td></tr>
+<tr><td>自然検索と指名検索でのページの違い</td><td class="editable-cell">指名検索SPのFVコピー変更。自然検索は変更なし。</td></tr>
+<tr><td>変更理由についての考察 / ABテスト仮説</td><td class="editable-cell">専門性訴求への変更をテストしている可能性。</td></tr>
+<tr><td>分かったこと・気づいたこと</td><td class="editable-cell">CTA構成は継続。</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="input-section">
+<h3>ページ観測（Page Observations DB）</h3>
+<div class="db">
+<table>
+<thead>
+<tr><th>流入</th><th>Device</th><th>メインコピー</th><th>LP全体キャプチャ</th><th>離脱防止Popup画像</th><th>観測URL</th></tr>
+</thead>
+<tbody>
+<tr><td>自然検索</td><td>PC</td><td class="editable-cell">ITエンジニアの転職なら…</td><td class="editable-cell">Files &amp; media / Drive</td><td class="editable-cell">Files &amp; media / Drive</td><td class="editable-cell">https://career.levtech.jp/</td></tr>
+<tr><td>自然検索</td><td>SP</td><td class="editable-cell">ITエンジニアの転職なら…</td><td class="editable-cell">Files &amp; media / Drive</td><td class="editable-cell">Files &amp; media / Drive</td><td class="editable-cell">https://career.levtech.jp/</td></tr>
+<tr><td>指名検索</td><td>PC</td><td class="editable-cell">IT転職に強い。</td><td class="editable-cell">Files &amp; media / Drive</td><td class="editable-cell">Files &amp; media / Drive</td><td class="editable-cell">https://career.levtech.jp/landing/317bn/</td></tr>
+<tr><td>指名検索</td><td>SP</td><td class="editable-cell">専門性で選ぶIT転職。</td><td class="editable-cell">Files &amp; media / Drive</td><td class="editable-cell">Files &amp; media / Drive</td><td class="editable-cell">https://career.levtech.jp/landing/317bn/</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="input-section">
+<h3>SNS広告（Creatives DB）</h3>
+<div class="db">
+<table>
+<thead><tr><th>広告画像</th><th>遷移URL</th><th>訴求カテゴリ</th><th>広告コピー / メモ</th></tr></thead>
+<tbody>
+<tr><td class="editable-cell">Files &amp; media / Drive</td><td class="editable-cell">https://example.com/ad1</td><td class="editable-cell">年収アップ / エンジニア</td><td class="editable-cell">—</td></tr>
+<tr><td class="editable-cell">Files &amp; media / Drive</td><td class="editable-cell">https://example.com/ad2</td><td class="editable-cell">求人の質</td><td class="editable-cell">—</td></tr>
+</tbody>
+</table>
+<div class="notion-new">＋ 新規広告レコード</div>
+</div>
+<div class="db-map">元ExcelのSNS広告①②③…は、Notionでは広告1件=1レコードとして追加。閲覧ビュー側で週ごとに横並び表示。</div>
+</div>
+<div class="input-section">
+<h3>SNS広告の分かったこと・気づいたこと（Research DB）</h3>
+<div class="db"><table><tbody>
+<tr><td>SNS広告の差分・考察</td><td class="editable-cell">年収アップ・求人の質を継続。ITコンサル訴求を新規確認。</td></tr>
+</tbody></table></div>
+</div>
+</div>
+</section><section class="page" id="page-input-logos">
+<div class="crumb">競合調査 / 企業ロゴ使用状況 入力</div>
+<h1>企業ロゴ使用状況 入力</h1>
+<div class="input-page-note">
+  保存先：Logo Matrix DB / Logo Advertisers / Logo Companies。企業別調査とは独立した調査対象マスタです。
+</div>
+<div class="filterbar">
+<div><label>対象月</label><select id="logo-input-month"><option>2026/08</option><option>2026/07</option><option>2026/06</option></select></div>
+</div>
+<div class="input-section">
+<div class="toolbar-split">
+<div>
+<b>月次調査レコード</b>
+<div class="master-note">対象月ごとにロゴ調査の月次レコード/Viewを作成します。</div>
+</div>
+<button class="notion-btn primary" id="add-logo-month">＋ 新規月レコード</button>
+</div>
+<div class="record-list" id="logo-month-list">
+<div class="record-row"><button class="record-link logo-month-link" data-month="2026/08">2026/08</button><div>ロゴ調査 月次レコード</div><div class="record-badge">最新</div></div>
+<div class="record-row"><button class="record-link logo-month-link" data-month="2026/07">2026/07</button><div>ロゴ調査 月次レコード</div><div class="record-badge">履歴</div></div>
+</div>
+</div>
+<div class="toolbar-split" style="margin-top:14px">
+<div>
+<b>月別チェック入力</b>
+<div class="master-note">元Excelと同じ向き：行＝広告主、列＝企業ロゴ、セル＝チェック。</div>
+</div>
+<div class="action-group">
+<button class="notion-btn" id="add-logo-advertiser">＋ 新規広告主</button>
+<button class="notion-btn" id="add-logo-company">＋ 新規掲載企業</button>
+</div>
+</div>
+<div class="modal-lite hidden" id="logo-advertiser-form">
+<div class="form-grid">
+<div class="k">広告主名</div><div class="editable-cell" id="new-advertiser-name">新規広告主</div>
+</div>
+<div class="action-group" style="margin-top:10px">
+<button class="notion-btn primary" id="save-logo-advertiser">広告主マスタ＋行を追加</button>
+<button class="notion-btn" id="close-logo-advertiser">閉じる</button>
+</div>
+</div>
+<div class="modal-lite hidden" id="logo-company-form">
+<div class="form-grid">
+<div class="k">掲載企業名</div><div class="editable-cell" id="new-logo-company-name">新規掲載企業</div>
+</div>
+<div class="action-group" style="margin-top:10px">
+<button class="notion-btn primary" id="save-logo-company">掲載企業マスタ＋列を追加</button>
+<button class="notion-btn" id="close-logo-company">閉じる</button>
+</div>
+</div>
+<div class="logo-input-wrap" style="margin-top:12px">
+<table class="logo-input-table" id="logo-input-table">
+<thead><tr><th>広告主 ＼ 企業ロゴ</th><th data-logo="ニトリ">ニトリ</th><th data-logo="CAPCOM">CAPCOM</th><th data-logo="makita">makita</th><th data-logo="TOYOTA">TOYOTA</th><th data-logo="FANUC">FANUC</th><th data-logo="TERUMO">TERUMO</th><th data-logo="ダイキン">ダイキン</th><th data-logo="日清食品">日清食品</th><th data-logo="SONY">SONY</th><th data-logo="SHIFT">SHIFT</th><th data-logo="SmartHR">SmartHR</th><th data-logo="NEC">NEC</th><th data-logo="NTTデータ">NTTデータ</th><th data-logo="ZOZO">ZOZO</th></tr></thead>
+<tbody><tr data-advertiser="レバテック"><td>レバテック</td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td></tr><tr data-advertiser="リクルートエージェント"><td>リクルートエージェント</td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td></tr><tr data-advertiser="ワークポート"><td>ワークポート</td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td></tr><tr data-advertiser="type転職エージェント"><td>type転職エージェント</td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td></tr><tr data-advertiser="DODA"><td>DODA</td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td></tr><tr data-advertiser="ビズリーチ"><td>ビズリーチ</td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td></tr><tr data-advertiser="Green"><td>Green</td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td></tr><tr data-advertiser="アサイン"><td>アサイン</td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td></tr><tr data-advertiser="Findy"><td>Findy</td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td></tr><tr data-advertiser="JAC"><td>JAC</td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td></tr><tr data-advertiser="ギークリー"><td>ギークリー</td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td></tr><tr data-advertiser="マイビジョン"><td>マイビジョン</td><td><input checked="" type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input type="checkbox"/></td><td><input checked="" type="checkbox"/></td></tr></tbody>
+</table>
+</div>
+<div class="master-note">企業ロゴ使用数・全体の割合は閲覧側で自動集計。新規広告主は行追加、新規掲載企業は列追加。</div>
+</section><section class="page" id="page-input-highclass">
+<div class="crumb">競合調査 / 他社（ハイクラス）実績 入力</div>
+<h1>他社（ハイクラス）実績 入力</h1>
+<div class="input-page-note">保存先：Competitive Facts DB。企業別調査・企業ロゴとは独立した対象企業マスタを使用します。</div>
+<div class="input-section">
+<div class="toolbar-split">
+<div>
+<b>ハイクラス実績 対象企業マスタ</b>
+<div class="master-note">企業別調査・企業ロゴとは独立した対象企業マスタです。</div>
+</div>
+<button class="notion-btn" id="add-high-company">＋ 新規調査企業</button>
+</div>
+<div class="modal-lite hidden" id="high-company-form">
+<div class="form-grid">
+<div class="k">企業名</div><div class="editable-cell" id="high-company-name">新規ハイクラス企業</div>
+<div class="k">基準URL</div><div class="editable-cell">https://example.com/</div>
+</div>
+<div class="action-group" style="margin-top:10px">
+<button class="notion-btn primary" id="save-high-company">Highclass Companiesへ追加</button>
+<button class="notion-btn" id="close-high-company">閉じる</button>
+</div>
+</div>
+</div>
+<div class="filterbar"><div><label>企業</label><select><option>ビズリーチ</option><option>dodaX</option><option>JAC</option><option>マイビジョン</option><option>リクルートエージェント（ハイクラスLP）</option></select></div></div>
+<div class="input-section">
+<div class="toolbar-split">
+<div>
+<b>月次調査レコード</b>
+<div class="master-note">月ごとにCompetitive Factsの調査期間を切り分けます。</div>
+</div>
+<button class="notion-btn primary" id="add-high-month">＋ 新規月レコード</button>
+</div>
+<div class="record-list" id="high-month-list">
+<div class="record-row"><button class="record-link high-month-link" data-month="2026/08">2026/08</button><div>ハイクラス実績 月次レコード</div><div class="record-badge">最新</div></div>
+<div class="record-row"><button class="record-link high-month-link" data-month="2026/07">2026/07</button><div>ハイクラス実績 月次レコード</div><div class="record-badge">履歴</div></div>
+</div>
+</div>
+<div class="input-section">
+<div class="db">
+<table>
+<thead><tr><th>ファクト実績</th><th>内容</th><th>取得元</th><th>根拠スクリーンショット</th></tr></thead>
+<tbody>
+<tr><td>求人数</td><td class="editable-cell">年収1,000万円以上の求人が4割以上</td><td class="editable-cell">TOPページ</td><td class="editable-cell">Files &amp; media / Drive</td></tr>
+<tr><td>求人数（追加根拠）</td><td class="editable-cell">年収600万円以上の求人を100,359件</td><td class="editable-cell">TOPページ</td><td class="editable-cell">Files &amp; media / Drive</td></tr>
+<tr><td>転職後年収</td><td class="editable-cell">30代平均880万円</td><td class="editable-cell">指名LP</td><td class="editable-cell">Files &amp; media / Drive</td></tr>
+<tr><td>アドバイザー数</td><td class="editable-cell">9,300人以上</td><td class="editable-cell">TOPページ</td><td class="editable-cell">Files &amp; media / Drive</td></tr>
+<tr><td>求人実例（年収帯）</td><td class="editable-cell">ITコンサル 800〜1,500万円</td><td class="editable-cell">指名LP</td><td class="editable-cell">Files &amp; media / Drive</td></tr>
+<tr><td>参考（Meta広告）</td><td class="editable-cell">ハイクラス訴求クリエイティブ</td><td class="editable-cell">Meta広告</td><td class="editable-cell">Files &amp; media / Drive</td></tr>
+</tbody>
+</table>
+<div class="notion-new">＋ 新規実績ファクト / 追加根拠</div>
+</div>
+<div class="db-map">同じ企業×同じファクトでも複数レコードを許容し、複数根拠・参考Meta広告を欠落なく保存。</div>
+</div>
+<div class="input-section">
+<div class="add-row">
+<div>
+<div><b>Competitive Facts DB</b></div>
+<div class="meta">企業 × ファクト × 根拠 = 1レコード。複数根拠は別レコードで追加。</div>
+</div>
+<button class="notion-btn primary" id="add-high-record">＋ 新規実績ファクト</button>
+</div>
+<div class="record-list" id="high-record-list">
+<div class="record-row">
+<button class="record-link high-record-link" data-key="ビズリーチ|転職後年収">ビズリーチ｜転職後年収</button>
+<div>30代平均880万円 / 指名LP</div><div class="record-badge">既存</div>
+</div>
+<div class="record-row">
+<button class="record-link high-record-link" data-key="JAC|アドバイザー数">JAC｜アドバイザー数</button>
+<div>1,400名以上 / TOP</div><div class="record-badge">既存</div>
+</div>
+</div>
+<div class="inline-editor hidden" id="high-record-editor">
+<div class="inline-editor-head">
+<div>
+<div class="smallcaps">Competitive Facts DB page</div>
+<h3 id="high-editor-title" style="margin:4px 0">ビズリーチ｜転職後年収</h3>
+</div>
+<button class="notion-btn" id="close-high-editor">閉じる</button>
+</div>
+<div class="db">
+<table>
+<tbody>
+<tr><td>企業</td><td class="editable-cell" id="high-editor-company">ビズリーチ</td></tr>
+<tr><td>ファクト実績</td><td class="editable-cell" id="high-editor-fact">転職後年収</td></tr>
+<tr><td>内容</td><td class="editable-cell">30代平均880万円</td></tr>
+<tr><td>取得元</td><td class="editable-cell">指名LP</td></tr>
+<tr><td>根拠スクリーンショット</td><td class="editable-cell">Files &amp; media / Drive</td></tr>
+<tr><td>参考（Meta広告）</td><td class="editable-cell">必要に応じて別レコード追加</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section></main></div>
+<script>
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const page=document.getElementById('page-'+name);
+  if(page) page.classList.add('active');
+  document.querySelectorAll('nav a[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===name));
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('nav a[data-page]').forEach(a=>a.addEventListener('click',()=>showPage(a.dataset.page)));
+
+const companySelect=document.getElementById('company-select');
+if(companySelect){
+  companySelect.addEventListener('change',e=>{
+    const title=document.getElementById('company-title');
+    if(title) title.textContent=e.target.value;
+  });
+}
+
+const weekFilter=document.getElementById('company-week-filter');
+if(weekFilter){
+  weekFilter.addEventListener('change',e=>{
+    const value=e.target.value;
+    ['20260824','20260817','20260810'].forEach(k=>{
+      document.querySelectorAll('.week-'+k).forEach(el=>{
+        el.style.display=(value==='all'||value===k)?'':'none';
+      });
+    });
+  });
+}
+
+const inputCompany=document.getElementById('company-input-company');
+if(inputCompany){
+  inputCompany.addEventListener('change',e=>{
+    const c=document.getElementById('company-week-company');
+    if(c) c.textContent=e.target.value;
+  });
+}
+
+function openCompanyWeek(week){
+  const peek=document.getElementById('company-week-peek');
+  if(peek) peek.classList.remove('hidden');
+  const title=document.getElementById('company-week-title');
+  const val=document.getElementById('company-week-value');
+  if(title) title.textContent=week;
+  if(val) val.textContent=week;
+}
+document.querySelectorAll('#company-input-week-list .record-link').forEach(btn=>{
+  btn.addEventListener('click',()=>openCompanyWeek(btn.dataset.week));
+});
+document.getElementById('close-company-week')?.addEventListener('click',()=>{
+  document.getElementById('company-week-peek')?.classList.add('hidden');
+});
+
+document.getElementById('add-week-record')?.addEventListener('click',()=>{
+  const list=document.getElementById('company-input-week-list');
+  if(!list) return;
+  const week='2026/08/31週';
+  let existing=[...list.querySelectorAll('.record-link')].find(x=>x.dataset.week===week);
+  if(existing){ existing.click(); return; }
+
+  const row=document.createElement('div');
+  row.className='record-row';
+  row.innerHTML=`<button class="record-link" data-week="${week}">${week}</button>
+    <div>新規週次調査 / 未入力</div><div class="record-badge">手動追加</div>`;
+  list.prepend(row);
+  const btn=row.querySelector('.record-link');
+  btn.addEventListener('click',()=>openCompanyWeek(week));
+  btn.click();
+});
+
+
+function bindLogoRecordLink(btn){
+  btn.addEventListener('click',()=>{
+    const [month, company]=btn.dataset.key.split('|');
+    document.getElementById('logo-record-editor')?.classList.remove('hidden');
+    const t=document.getElementById('logo-editor-title'); if(t) t.textContent=`${month}｜${company}`;
+    const m=document.getElementById('logo-editor-month'); if(m) m.textContent=month;
+    const c=document.getElementById('logo-editor-company'); if(c) c.textContent=company;
+  });
+}
+document.querySelectorAll('.logo-record-link').forEach(bindLogoRecordLink);
+document.getElementById('close-logo-editor')?.addEventListener('click',()=>document.getElementById('logo-record-editor')?.classList.add('hidden'));
+document.getElementById('add-logo-record')?.addEventListener('click',()=>{
+  const list=document.getElementById('logo-record-list'); if(!list) return;
+  const key='2026/09|レバテック';
+  let existing=[...list.querySelectorAll('.logo-record-link')].find(x=>x.dataset.key===key);
+  if(existing){ existing.click(); return; }
+  const row=document.createElement('div'); row.className='record-row';
+  row.innerHTML=`<button class="record-link logo-record-link" data-key="${key}">2026/09｜レバテック</button>
+    <div>新規ロゴ調査 / 未入力</div><div class="record-badge">手動追加</div>`;
+  list.prepend(row);
+  const btn=row.querySelector('.logo-record-link'); bindLogoRecordLink(btn); btn.click();
+});
+
+function bindHighRecordLink(btn){
+  btn.addEventListener('click',()=>{
+    const [company, fact]=btn.dataset.key.split('|');
+    document.getElementById('high-record-editor')?.classList.remove('hidden');
+    const t=document.getElementById('high-editor-title'); if(t) t.textContent=`${company}｜${fact}`;
+    const c=document.getElementById('high-editor-company'); if(c) c.textContent=company;
+    const f=document.getElementById('high-editor-fact'); if(f) f.textContent=fact;
+  });
+}
+document.querySelectorAll('.high-record-link').forEach(bindHighRecordLink);
+document.getElementById('close-high-editor')?.addEventListener('click',()=>document.getElementById('high-record-editor')?.classList.add('hidden'));
+document.getElementById('add-high-record')?.addEventListener('click',()=>{
+  const list=document.getElementById('high-record-list'); if(!list) return;
+  const key='ビズリーチ|求人数';
+  let existing=[...list.querySelectorAll('.high-record-link')].find(x=>x.dataset.key===key);
+  if(existing){ existing.click(); return; }
+  const row=document.createElement('div'); row.className='record-row';
+  row.innerHTML=`<button class="record-link high-record-link" data-key="${key}">ビズリーチ｜求人数</button>
+    <div>新規実績ファクト / 未入力</div><div class="record-badge">手動追加</div>`;
+  list.prepend(row);
+  const btn=row.querySelector('.high-record-link'); bindHighRecordLink(btn); btn.click();
+});
+
+
+function toggleHidden(id, show){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle('hidden', !show);
+}
+
+// Research company
+document.getElementById('add-research-company')?.addEventListener('click',()=>toggleHidden('research-company-form',true));
+document.getElementById('close-research-company')?.addEventListener('click',()=>toggleHidden('research-company-form',false));
+document.getElementById('save-research-company')?.addEventListener('click',()=>{
+  const selects=[...document.querySelectorAll('#page-input-company select')];
+  const target=selects.find(s=>[...s.options].some(o=>o.textContent==='レバテックキャリア'));
+  if(target && ![...target.options].some(o=>o.textContent==='新規エージェント')){
+    const opt=document.createElement('option'); opt.textContent='新規エージェント'; target.appendChild(opt);
+  }
+  toggleHidden('research-company-form',false);
+});
+
+// Logo advertiser / company
+
+
+// Highclass company
+document.getElementById('add-high-company')?.addEventListener('click',()=>toggleHidden('high-company-form',true));
+document.getElementById('close-high-company')?.addEventListener('click',()=>toggleHidden('high-company-form',false));
+document.getElementById('save-high-company')?.addEventListener('click',()=>{
+  const select=document.querySelector('#page-input-highclass select');
+  if(select && ![...select.options].some(o=>o.textContent==='新規ハイクラス企業')){
+    const opt=document.createElement('option'); opt.textContent='新規ハイクラス企業'; select.appendChild(opt);
+    select.value='新規ハイクラス企業';
+  }
+  toggleHidden('high-company-form',false);
+});
+
+
+function addMonthRecord(listId, linkClass, month, label){
+  const list=document.getElementById(listId);
+  if(!list) return;
+  let existing=[...list.querySelectorAll('.'+linkClass)].find(x=>x.dataset.month===month);
+  if(existing){ existing.click(); return; }
+  const row=document.createElement('div');
+  row.className='record-row';
+  row.innerHTML=`<button class="record-link ${linkClass}" data-month="${month}">${month}</button>
+    <div>${label}</div><div class="record-badge">手動追加</div>`;
+  list.prepend(row);
+}
+
+
+
+document.getElementById('add-high-month')?.addEventListener('click',()=>{
+  addMonthRecord('high-month-list','high-month-link','2026/09','ハイクラス実績 月次レコード');
+});
+
+
+function toggleHidden(id, show){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle('hidden', !show);
+}
+function addMonthRecord(listId, linkClass, month, label){
+  const list=document.getElementById(listId);
+  if(!list) return;
+  let existing=[...list.querySelectorAll('.'+linkClass)].find(x=>x.dataset.month===month);
+  if(existing) return;
+  const row=document.createElement('div');
+  row.className='record-row';
+  row.innerHTML=`<button class="record-link ${linkClass}" data-month="${month}">${month}</button>
+    <div>${label}</div><div class="record-badge">手動追加</div>`;
+  list.prepend(row);
+}
+document.getElementById('add-logo-month')?.addEventListener('click',()=>{
+  addMonthRecord('logo-month-list','logo-month-link','2026/09','ロゴ調査 月次レコード');
+  const s=document.getElementById('logo-input-month');
+  if(s && ![...s.options].some(o=>o.textContent==='2026/09')){
+    const o=document.createElement('option'); o.textContent='2026/09'; s.appendChild(o); s.value='2026/09';
+  }
+});
+
+document.getElementById('add-logo-advertiser')?.addEventListener('click',()=>toggleHidden('logo-advertiser-form',true));
+document.getElementById('close-logo-advertiser')?.addEventListener('click',()=>toggleHidden('logo-advertiser-form',false));
+document.getElementById('add-logo-company')?.addEventListener('click',()=>toggleHidden('logo-company-form',true));
+document.getElementById('close-logo-company')?.addEventListener('click',()=>toggleHidden('logo-company-form',false));
+
+document.getElementById('save-logo-advertiser')?.addEventListener('click',()=>{
+  const table=document.getElementById('logo-input-table'); if(!table) return;
+  const name='新規広告主';
+  if([...table.querySelectorAll('tbody tr td:first-child')].some(td=>td.textContent===name)){
+    toggleHidden('logo-advertiser-form',false); return;
+  }
+  const colCount=table.querySelectorAll('thead th').length;
+  const tr=document.createElement('tr');
+  tr.innerHTML='<td>'+name+'</td>'+Array.from({length:colCount-1},()=>'<td><input type="checkbox"></td>').join('');
+  table.querySelector('tbody').appendChild(tr);
+  toggleHidden('logo-advertiser-form',false);
+});
+
+document.getElementById('save-logo-company')?.addEventListener('click',()=>{
+  const table=document.getElementById('logo-input-table'); if(!table) return;
+  const name='新規掲載企業';
+  if([...table.querySelectorAll('thead th')].some(th=>th.textContent===name)){
+    toggleHidden('logo-company-form',false); return;
+  }
+  const th=document.createElement('th'); th.textContent=name; table.querySelector('thead tr').appendChild(th);
+  table.querySelectorAll('tbody tr').forEach(tr=>{
+    const td=document.createElement('td'); td.innerHTML='<input type="checkbox">'; tr.appendChild(td);
+  });
+  toggleHidden('logo-company-form',false);
+});
+</script></body></html>
